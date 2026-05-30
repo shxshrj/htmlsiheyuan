@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style>
+			html,body{
+				height: 100%
+			}
+			*{
+				margin: 0;
+				padding: 0;
+			}
+			.content {
+				display: flex;
+				flex-direction: column;
+				height: 100%
+			}
+			.header{
+				background: #ccc;
+				height: 100px;
+				
+			}
+			.footer{
+				background: #111;
+				height: 100px;
+			}
+			.section{
+				display: flex;
+				height: 100%;
+			}
+			.article {
+				width: 100%;
+			}
+			.aside1 {
+				width: 200px;
+				flex-shrink:0;
+				background: green;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="content">
+			<header class="header"></header>
+			<section class="section">
+				<aside class="aside1"></aside>
+				<article class="article"></article>
+				<aside class="aside1"></aside>
+			</section>
+			<footer class="footer"></footer>
+		</div>
+	</body>
+</html>
