@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+	</body>
+	<script type="text/javascript">
+		function deepClone1(obj={}) {
+			if(typeof obj !=='object' || obj ==null) {
+				return obj
+			}
+			let result = obj instanceof Array?[]:{};
+			for(let key in obj){
+				if (obj.hasOwnProperty(key)){
+					result[key] = deepClone1(obj[key]);
+				}
+			}
+			return result
+		}
+		let luky = {
+			id:1,
+			name:'luky',
+			schoolName: 'buzheng',
+			famaly:[
+				'father','mother','young sister'
+			]
+		}
+		let lukySiter= deepClone1(luky);
+		lukySiter.name= 'lucky'
+		console.log(lukySiter)
+		console.log(luky)
+		
+		function deepClone2(obj = {}, comparMap = new WeakMap()){
+			if(typeof obj !== 'object' || obj == null) return obj;
+			if(comparMap.get(obj)) return comparMap.get(obj);
+			let result = obj instanceof Array? []:{};
+			comparMap.set(obj,result);
+			console.log(comparMap)
+			for (let key in obj) {
+				if(obj.hasOwnProperty(key)) {
+					result[key] = deepClone2(obj[key],comparMap)
+				}
+			}
+			return result
+		}
+		let LiMing = {
+			name:'LiMing',
+			id:'1',
+			schoolName:'jiajia',
+			interesting:[
+				'lihai1',
+				'lihai3',
+				'lihai12'
+			],
+			bookName: {
+				book1: 'haidi',
+				book2:'baixue',
+				boook3:'xiaoAiren'
+			}
+		}
+		let WangMing = {
+			name:'WangMing',
+			id:'1',
+			schoolName:'jiajia1',
+			interesting:[
+				'lihai4',
+				'lihai5',
+				'lihai16'
+			],
+			bookName: {
+				book4: 'haidi',
+				book5:'baixue',
+				boook6:'xiaoAiren'
+			}
+		}
+		LiMing.sister = WangMing
+		WangMing.sister = LiMing
+		let copyLiMing = deepClone2(LiMing);
+		console.log(copyLiMing)
+	</script>
+</html>
