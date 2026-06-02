@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+	</body>
+	<script type="text/javascript">
+		function print(fn) {
+			let a = 200;
+			fn()
+		}
+		let a = 100;
+		function fn1(){
+			console.log(a)
+		}
+		print(fn1)
+		function create(){
+			let b =1000;
+			return function(){
+				console.log(b)
+			}
+		}
+		let fcn = create();
+		let b =2000;
+		fcn()
+		/* 
+		 所有的自由变量的查找，是在函数定义的地方，向上级作用域查找，不是在指定的地方
+		 当一个变量在当前作用域没有定义，但是被使用了
+		 则向上级作用域，一层一层依次寻找，直到找到为止
+		 如果全局作用域都没有找到，则报undefined
+		 */
+		
+		function createCache(){
+			const data = {};
+			return {
+				set:function(key,val){
+					data[key] = val
+				},
+				get: function(key){
+					return data[key]
+				}
+			}
+		}
+		const c = createCache();
+		c.set('name', 'liuyang')
+		const who = c.get('name');
+		console.info(who)
+		// this取什么值，是在执行的时候确定的，不是在定义的时候确定的
+		function callFn1(){
+			console.log(this)
+		}
+		callFn1()
+		callFn1.call({x:19})
+		const bindFn1 = callFn1.bind({x:200});
+		bindFn1()
+		const zhangsan = {
+			name: '张三',
+			sayHi:function(){
+				console.log(this)
+			},
+			wait:function(){
+				setTimeout(function(){
+					console.info(111,this)
+				})
+			},
+			wait1(){
+				setTimeout(()=>{
+					console.info(222,this)
+				})
+			}
+		}
+		zhangsan.sayHi()
+		zhangsan.wait()
+		zhangsan.wait1()
+		const wait1 = zhangsan.wait1;
+		wait1()
+		Function.prototype.myCall =function(context, ...args){
+			context = context|| window;
+			const uniqueKey = Symbol('fn');
+			context[uniqueKey] = this;
+			const result = context[uniqueKey](...args);
+			delete context[uniqueKey];
+			return result
+		}
+		const ball = {
+			ballName: 'footBall',
+			sayHello(introduce){
+				console.info(introduce + this.ballName)
+			}
+		}
+		const anotherBall = {
+			ballName: 'basketBall'
+		}
+		ball.sayHello.myCall(anotherBall, '我是',' 我也是')
+		Function.prototype.myApply=function(context,argsArr = []){
+			context = context||window;
+			const uniqueKey = Symbol('fn');
+			context[uniqueKey] = this;
+			const result = context[uniqueKey](...argsArr);
+			delete context[uniqueKey];
+			return result
+		}
+		const arr1= [1,2,3];
+		const arr3= [4,5,6]
+		const arr2 = arr1.push.myApply(arr1,arr3)
+		console.log('myApply', arr1)
+		Function.prototype.myBind = function(context, ...bindArgs){
+			const orginalFun = this;
+			const returnFun = function(...callArg){
+				const allArgs = [...bindArgs, ...callArg];
+				// 关键：判断是否通过new关键字调用的
+				if(this instanceof returnFun){
+					// 箭头函数不能作为构造函数，原生bind返回undefined
+					if(!orginalFun.propotype){
+						return undefined;
+					}
+					// 是new关键字调用的， this指向新实例
+					return new orginalFun(...allArgs)
+				}
+				// 如果是普通调用，就使用call/apply将this指向绑定的context
+				return orginalFun.apply(context, allArgs)
+			}
+			console.info('orginalFun.prototype',orginalFun.prototype)
+			// 处理原型链：让返回的函数的原型指向原始函数的原型
+			// 这样，由bind后的函数new出来的实例，也能继承原始函数的原型方法
+			if(orginalFun.prototype){
+				returnFun.prototype = Object.create(orginalFun.prototype);
+				returnFun.prototype.constructor = returnFun;
+			}
+			return returnFun
+		}
+		const objBInd = {x:10}
+		function add(y,z) {
+			return this.x +y+z
+		}
+		const boundAdd = add.myBind(objBInd,6,7);
+		console.log('bind', boundAdd(3,6))
+	</script>
+</html>
