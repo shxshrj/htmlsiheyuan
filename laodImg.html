@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+	</body>
+	<script>
+		function loadImg(url){
+			const p = new Promise((resolve,reject)=>{
+				let img = document.createElement('img')
+				img.onload=function(){
+					resolve(img)
+				}
+				img.onerror = function(){
+					const err = new Error('图片加载失败');
+					reject(err)
+				}
+				img.src = url
+			})
+			return p
+		}
+		const url = 'https://img';
+		const p = loadImg(url);
+		p.then(img=>{
+			console.log(img.width)
+		}).catch(err=>{
+			console.error(err)
+		})
+	</script>
+</html>
