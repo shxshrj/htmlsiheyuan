@@ -5,8 +5,92 @@
 		<title></title>
 	</head>
 	<body>
+		<button id="btn1">按钮</button>
 	</body>
 	<script>
+		// console.log(100)
+		// setTimeout(()=>{
+		// 	console.log(200)
+		// })
+		// console.log(300)
+		// console.log(400)
+		// console.log(1000)
+		// alert(2000)
+		// console.log(3000)
+		// console.log('hi')
+		// setTimeout(function cb1(){
+		// 	console.log('cbcbcbc')
+		// },5000)
+		// console.log('biabia')
+		
+		// dom事件也是基于回调，基于event loop的
+		// console.log('hi')
+		// const elem = document.getElementById('btn1');
+		// elem.addEventListener('click',function(){
+		// 	console.log('button clicked')
+		// })
+		// console.log('byebye')
+		
+		// promise有三种状态 pending fullfilled rejected
+		
+		// Promise.resolve().then(()=>{
+		// 	console.log(1)
+		// }).catch(()=>{
+		// 	console.log(2)
+		// }).then(()=>{
+		// 	console.log(3)
+		// })
+		
+		// Promise.resolve().then(()=>{
+		// 	console.log(1);
+		// 	throw new Error('错误了')
+		// }).catch(err=>{
+		// 	console.log(err)
+		// }).then(()=>{
+		// 	console.log(333)
+		// })
+		
+		// Promise.resolve().then(()=>{
+		// 	console.log(1)
+		// 	throw new Error('失败了')
+		// }).catch(()=>{
+		// 	console.log(2)
+		// }).catch(()=>{
+		// 	console.log(3)
+		// })
+		// const p1 = new Promise((resolve,reject)=>{
+			
+		// })
+		// console.log(p1)
+		
+		// const p2 = new Promise((resolve,reject)=>{
+		// 	setTimeout(()=>{
+		// 		resolve()
+		// 	},5000)
+		// })
+		// console.log('promise pending然后到resolve:' ,p2);
+		
+		// const p3 = new Promise((resolve, reject)=>{
+		// 	setTimeout(()=>{
+		// 		reject()
+		// 	},5000);
+		// });
+		
+		// console.log('promise pending然后到reject', p3);
+		// setTimeout(()=>{
+		// 	console.log('promise reject', p3);
+		// });
+		
+		// const p4 = Promise.resolve(100);
+		// console.log('p4 resolve',p4);
+		// p4.then(data=>{
+		// 	console.log(data);
+		// })
+		// const p5 = Promise.reject('err');
+		// console.log('p5 reject', p5);
+		// p5.catch(err=>{
+		// 	console.log(err);
+		// })
 		// const p =new Promise((resolve,reject)=>{
 		// 	console.log('进入了Promise')
 		// 	setTimeout(()=>{
@@ -18,13 +102,162 @@
 		// 	console.log(data)
 		// })
 		// 执行async函数，返回的是Promise对象
-		async function fn1(){
-			return 100;
+		// async function fn1(){
+		// 	return 100;
+		// }
+		// const res1 = fn1();
+		// console.log('res1', res1)
+		// res1.then(data=>{
+		// 	console.log(data)
+		// })
+		class MyPromise1{
+			state= 'pending';
+			value = undefined;
+			reason = undefined;
+			resolveCallbacks = []; // pending状态下，存储成功的回调
+			rejectCallbacks = []; // pendding 状态下，存储失败的回调
+			constructor(fn) {
+			    const resolveHandler = value=>{
+					if(this.state === 'pending') {
+						this.state = 'fullfilled';
+						this.value = value;
+						console.log(this.resolveCallbacks)
+						this.resolveCallbacks.forEach(func=>{
+							func(this.value)
+						})
+					}
+				}
+				const rejectHandler = reason=>{
+					if(this.state === 'pending') {
+						this.state = 'reject';
+						this.reason = reason;
+						this.rejectCallbacks.forEach(func=>{
+							func(this.reason)
+						})
+					}
+				}
+				fn(resolveHandler, rejectHandler)
+			}
+			then(fn1,fn2){
+				fn1 = typeof fn1 === 'function' ? fn1 : (v)=>v;
+				fn2 = typeof fn2 === 'function' ? fn2 : (e)=>e;
+				if(this.state === 'pending') {
+					return new MyPromise1((resolve, reject) => {
+						this.resolveCallbacks.push(()=>{
+							try {
+								const newValue = fn1(this.value);
+								resolve(newValue)
+							} catch (error) {
+								reject(error)
+							}
+						})
+						this.rejectCallbacks.push(()=>{
+							try {
+								const newReason = fn2(this.reason);
+								reject(newReason)
+							} catch (error) {
+								//TODO handle the exception
+								reject(error)
+							}
+						})
+					})
+				}
+				if(this.state === 'fullfilled') {
+					return new MyPromise1((resolve, reject) => {
+						this.resolveCallbacks.push(()=>{
+							try {
+								const newValue = fn1(this.value)
+								resolve(newValue)
+							} catch (error) {
+								//TODO handle the exception
+								reject(error)
+							}
+						})
+						
+					})
+				}
+				if(this.state === 'reject') {
+					return new MyPromise1((resolve,reject) => {
+						this.rejectCallbacks.push(()=>{
+							try {
+								const newReason = fn2(this.reason);
+								reject(newReason)
+							} catch (error) {
+								//TODO handle the exception
+								reject(newReason)
+							}
+						})
+					})
+				}
+			}
+			catch(fn){
+				return this.then(null, fn)
+			}
 		}
-		const res1 = fn1();
-		console.log('res1', res1)
-		res1.then(data=>{
-			console.log(data)
+		MyPromise1.resolve = function(value){
+			return new MyPromise1((resolve, reject) => {
+				resolve(value)
+			})
+		}
+		MyPromise1.reject = function(reason){
+			return new MyPromise1((reason,reject) => {
+				reject(reason)
+			})
+		}
+		MyPromise1.all = function(promisList = []) {
+			const p1 = new MyPromise1((resolve,reject)=>{
+				const result = [];
+				const length = promisList.length;
+				let resolveCount = 0;
+				promisList.forEach((p,index)=>{
+					p.then(data=>{
+						result[index] = data;
+						resolveCount ++;
+						if(length === resolveCount) {
+							resolve(result);
+						}
+					}).catch(err=>{
+						reject(err);
+					})
+				})
+			})
+			return p1;
+		}
+		MyPromise1.race = function(promisList = []) {
+			let resolveFlag = false;
+			const p1 = new MyPromise1((resolve, reject) => {
+				promisList.forEach(p=>{
+					p.then(data => {
+						if(!resolveFlag){
+							resolveFlag = true;
+							resolve(data);
+						}
+						
+					}).catch(err=>{
+						reject(err)
+					})
+				})
+			})
+			return p1
+		}
+		const f1 = new MyPromise1((resolve,reject) => {
+			setTimeout(()=>{
+				resolve(5000)
+			},5000)
 		})
+		const f2 = new MyPromise1((resolve,reject) => {
+			setTimeout(()=>{
+				resolve(4000)
+			},4000)
+		})
+		const f3 = new MyPromise1((resolve,reject) => {
+			setTimeout(()=>{
+				resolve(3000)
+			},3000)
+		})
+		MyPromise1.all([f1, f2, f3]).then(data=>{
+			console.log('all', data)
+		})
+		
 	</script>
 </html>
